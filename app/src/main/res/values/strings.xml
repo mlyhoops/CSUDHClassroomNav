@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">ToroNavigator</string>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_login">Login</string>
+    <string name="title_activity_settings">settings</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="search_label">Search</string>
+    <string name="search_hint">Search for classrooms or offices</string>
+    <string name="searchable">searchable</string>
+
+    <string name="normal_map">Normal</string>
+    <string name="hybrid_map">Hybrid</string>
+    <string name="satellite_map">Sattelite</string>
+    <string name="terrain_map">Terrain</string>
+
+    <string name="googlemaps_overlay_description">Shows location over a floor plan which is loaded as map overlay. Shows both IndoorAtlas location and platform location (GPS).</string>
+    <string name="button_close">Close</string>
+
+    <string name="configuration_incomplete_title">Configuration incomplete</string>
+    <string name="configuration_incomplete_message">API credentials needed, please see gradle.properties in project root level.</string>
+    <string name="example_wayfinding_description">Demonstrates usage of IndoorAtlas Wayfinding</string>
+    <string name="button_ok">OK</string>
+    <string name="location_permission_request_title">Permission required</string>
+    <string name="location_permission_request_rationale">Access to coarse location is required for faster first fix.</string>
+    <string name="location_permission_denied_message">No access to locations. Time to first fix may be severely delayed!</string>
+    <string name="permission_button_accept">Sure</string>
+    <string name="permission_button_deny">Deny</string>
+    <string name="example_credentials_title">06. Set credentials</string>
+    <string name="example_credentials_description">Demonstrates setting credentials from code</string>
+
+
+</resources>
