@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "359857618855",
+    "firebase_url": "https://csudhclassroomnav.firebaseio.com",
+    "project_id": "csudhclassroomnav",
+    "storage_bucket": "csudhclassroomnav.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:359857618855:android:946f24645e2c6936",
+        "android_client_info": {
+          "package_name": "com.example.mlyho.csudhclassroomnav"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "359857618855-kg858tba6545btkcd7g8ejpq15644s45.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.mlyho.csudhclassroomnav",
+            "certificate_hash": "3101093c7f6ab22b56dcb32b4115d0856fcdcf18"
+          }
+        },
+        {
+          "client_id": "359857618855-ucho15vu3ii8cssb8g9rvolcvqq0unoe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfg63HyBmKI7D8ESJcW_0f1SqLAUOawzI"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "359857618855-ucho15vu3ii8cssb8g9rvolcvqq0unoe.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

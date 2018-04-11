@@ -15,12 +15,14 @@ import android.os.Looper;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -58,7 +60,7 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 @SdkExample(description = R.string.example_wayfinding_description)
 public class Navigation extends FragmentActivity implements LocationListener,
-        GoogleMap.OnMapClickListener {
+        GoogleMap.OnMapClickListener, OnMapReadyCallback {
     private static final int MY_PERMISSION_ACCESS_FINE_LOCATION = 42;
 
     private static final String TAG = "IndoorAtlasExample";
@@ -66,6 +68,7 @@ public class Navigation extends FragmentActivity implements LocationListener,
     /* used to decide when bitmap should be downscaled */
     private static final int MAX_DIMENSION = 2048;
 
+    private SupportMapFragment nMap;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Circle mCircle;
     private IARegion mOverlayFloorPlan = null;
@@ -155,6 +158,10 @@ public class Navigation extends FragmentActivity implements LocationListener,
     private IARegion.Listener mRegionListener = new IARegion.Listener() {
         @Override
         public void onEnterRegion(IARegion region) {
+            String Region = "";
+            String NSMmain = "c26c8c78-6425-46f4-a7d8-d3190fd37567";
+
+
             if (region.getType() == IARegion.TYPE_FLOOR_PLAN) {
                 final String newId = region.getId();
                 // Are we entering a new floor plan or coming back the floor plan we just left?
@@ -173,9 +180,12 @@ public class Navigation extends FragmentActivity implements LocationListener,
                 mShowIndoorLocation = true;
                 showInfo("Showing IndoorAtlas SDK\'s location output");
             }
+            if(region.getId().equals(NSMmain)){
+                Region = "NSM Main";
+            }
             showInfo("Enter " + (region.getType() == IARegion.TYPE_VENUE
                     ? "VENUE "
-                    : "FLOOR_PLAN ") + region.getId());
+                    : "The ") + Region);
         }
 
         @Override
@@ -238,6 +248,10 @@ public class Navigation extends FragmentActivity implements LocationListener,
         // prevent the screen going to sleep while app is on foreground
         findViewById(android.R.id.content).setKeepScreenOn(true);
 
+        nMap = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        nMap.getMapAsync(this);
+
         // instantiate IALocationManager and IAResourceManager
         mIALocationManager = IALocationManager.create(this);
         mResourceManager = IAResourceManager.create(this);
@@ -273,20 +287,54 @@ public class Navigation extends FragmentActivity implements LocationListener,
     @Override
     protected void onResume() {
         super.onResume();
-        if (mMap == null) {
+        //if (mMap == null) {
              //Try to obtain the map from the SupportMapFragment.
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                    .getMap();
-            mMap.setMyLocationEnabled(true);
-        }
+//            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
+//                    .getMapAsync(this);
+//            mMap.setMyLocationEnabled(true);
+
+
+
+       // }
 
         // start receiving location updates & monitor region changes
         mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mListener);
         mIALocationManager.registerRegionListener(mRegionListener);
 
-        mMap.setOnMapClickListener(this);
     }
 
+    @Override
+    public void onMapReady(GoogleMap map){
+        mMap = map;
+        mMap.setOnMapClickListener(this);
+
+        //Check for Permissions
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Permission is not granted
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+
+            } else {
+
+                // No explanation needed; request the permission
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                        1);
+
+            }
+        } else {
+            // Permission has already been granted
+        }
+        mMap.setMyLocationEnabled(true);
+    }
 
 
     @Override
