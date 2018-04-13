@@ -45,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void openNav(View view){
+        final Intent Nav = new Intent(this, Navigation.class);
+        startActivity(Nav);
+    }
 
     private void addDrawerItems() {
         String[] osArray = { "Classrooms", "Offices", "Full Map", "Settings", "Navigation" };

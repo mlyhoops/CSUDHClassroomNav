@@ -160,6 +160,7 @@ public class Navigation extends FragmentActivity implements LocationListener,
         public void onEnterRegion(IARegion region) {
             String Region = "";
             String NSMmain = "c26c8c78-6425-46f4-a7d8-d3190fd37567";
+            String SAC3 = "630a3d18-bf65-403d-9b83-eb862aacd529";
 
 
             if (region.getType() == IARegion.TYPE_FLOOR_PLAN) {
@@ -182,6 +183,9 @@ public class Navigation extends FragmentActivity implements LocationListener,
             }
             if(region.getId().equals(NSMmain)){
                 Region = "NSM Main";
+            }
+            if(region.getId().equals(SAC3)){
+                Region = "SAC 3";
             }
             showInfo("Enter " + (region.getType() == IARegion.TYPE_VENUE
                     ? "VENUE "
@@ -307,6 +311,10 @@ public class Navigation extends FragmentActivity implements LocationListener,
     public void onMapReady(GoogleMap map){
         mMap = map;
         mMap.setOnMapClickListener(this);
+
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(33.863333, -118.255177), 15));
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
 
         //Check for Permissions
         if (ContextCompat.checkSelfPermission(this,
