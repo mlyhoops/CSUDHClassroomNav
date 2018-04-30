@@ -31,6 +31,22 @@
     <string name="permission_button_deny">Deny</string>
     <string name="example_credentials_title">06. Set credentials</string>
     <string name="example_credentials_description">Demonstrates setting credentials from code</string>
+    <string name="action_search">Search Here</string>
+    <string name="tutorial">Tutorial:
+        \n1. Click the button to start navigation.
+        \n   - tap on a class to get a path
+        \n   - tap on magnifying glass to search for class/office
+        \n2. Click the hamburger menu for options.
+        \n   - Classrooms: shows all classrooms
+        \n   - Offices: shows all offices
+        \n   - Full Map: shows a full Google Map with all main buildings
+        \n   - Settings: contact us page/other
+        \n   - Navigation: navigation page
+        \n
+        \n--- Other Important Information ---
+        \n   - blue dot is your gps location (Accurate Outside)
+        \n   - dark blue circle is your wifi location (Accurate Inside/Under Buildings)
+        </string>
 
 
 </resources>

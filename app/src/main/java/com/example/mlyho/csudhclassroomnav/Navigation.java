@@ -1,9 +1,15 @@
 package com.example.mlyho.csudhclassroomnav;
 
 import android.Manifest;
+import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -14,10 +20,20 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -59,11 +75,11 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 //import com.google.android.gms.maps.model.GroundOverlay;
 
 @SdkExample(description = R.string.example_wayfinding_description)
-public class Navigation extends FragmentActivity implements LocationListener,
-        GoogleMap.OnMapClickListener, OnMapReadyCallback {
+public class Navigation extends AppCompatActivity implements LocationListener,
+        GoogleMap.OnMapClickListener, OnMapReadyCallback{
     private static final int MY_PERMISSION_ACCESS_FINE_LOCATION = 42;
 
-    private static final String TAG = "IndoorAtlasExample";
+    public static final String TAG = "IndoorAtlasExample";
 
     /* used to decide when bitmap should be downscaled */
     private static final int MAX_DIMENSION = 2048;
@@ -91,6 +107,12 @@ public class Navigation extends FragmentActivity implements LocationListener,
     private IARoutingLeg[] mCurrentRoute;
 
     private Integer mFloor;
+
+    private SQLiteOpenHelper openHelper;
+    private SQLiteDatabase database;
+    private data db = new data(this);
+
+
 
     private void showLocationCircle(LatLng center, double accuracyRadius) {
         if (mCircle == null) {
@@ -150,6 +172,7 @@ public class Navigation extends FragmentActivity implements LocationListener,
                 mCameraPositionNeedsUpdating = false;
             }
         }
+
     };
 
     /**
@@ -160,8 +183,23 @@ public class Navigation extends FragmentActivity implements LocationListener,
         public void onEnterRegion(IARegion region) {
             String Region = "";
             String NSMmain = "c26c8c78-6425-46f4-a7d8-d3190fd37567";
+            String NSMlower = "";
+            String NSMupper = "";
             String SAC3 = "630a3d18-bf65-403d-9b83-eb862aacd529";
-
+            String SAC2 = "";
+            String LCHmain = "";
+            String LCHlower = "";
+            String LCHupper = "";
+            String SBSmain = "";
+            String SBSlower = "";
+            String SBSupper = "";
+            String LIB = "";
+            String GYM = "";
+            String SCC1 = "";
+            String SCC2 = "";
+            String SCC3 = "";
+            String WHlower = "";
+            String anythingElse = "";
 
             if (region.getType() == IARegion.TYPE_FLOOR_PLAN) {
                 final String newId = region.getId();
@@ -184,9 +222,47 @@ public class Navigation extends FragmentActivity implements LocationListener,
             if(region.getId().equals(NSMmain)){
                 Region = "NSM Main";
             }
+            if(region.getId().equals(NSMlower)){
+                Region = "NSM Lower";
+            }
+            if(region.getId().equals(NSMupper)){
+                Region = "NSM Upper";
+            }
             if(region.getId().equals(SAC3)){
                 Region = "SAC 3";
             }
+            if(region.getId().equals(SAC2)){
+                Region = "SAC 2";
+            }
+            if(region.getId().equals(SBSmain)){
+                Region = "SBS Main";
+            }
+            if(region.getId().equals(SBSlower)){
+                Region = "SBS Lower";
+            }
+            if(region.getId().equals(SBSupper)){
+                Region = "SBS Upper";
+            }
+            if(region.getId().equals(LCHmain)){
+                Region = "LCH Main";
+            }
+            if(region.getId().equals(LCHlower)){
+                Region = "LCH Lower";
+            }
+            if(region.getId().equals(LCHupper)){
+                Region = "LCH Upper";
+            }
+            if(region.getId().equals(LIB)){
+                Region = "LIB";
+            }
+            if(region.getId().equals(GYM)){
+                Region = "GYM";
+            }
+            if(region.getId().equals(SCC1)){
+                Region = "SCC1";
+            }
+
+
             showInfo("Enter " + (region.getType() == IARegion.TYPE_VENUE
                     ? "VENUE "
                     : "The ") + Region);
@@ -244,27 +320,32 @@ public class Navigation extends FragmentActivity implements LocationListener,
     public void onStatusChanged(String provider, int status, Bundle extras) {
     }
 
+    private ListView mDrawerList;
+    private DrawerLayout mDrawerLayout;
+    private ArrayAdapter<String> mAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private String mActivityTitle;
+    public LatLng local;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Request GPS locations
+        while(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_ACCESS_FINE_LOCATION);
+            if(ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+                break;
+            }
+        }
+
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
 
         // prevent the screen going to sleep while app is on foreground
         findViewById(android.R.id.content).setKeepScreenOn(true);
 
-        nMap = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        nMap.getMapAsync(this);
 
-        // instantiate IALocationManager and IAResourceManager
-        mIALocationManager = IALocationManager.create(this);
-        mResourceManager = IAResourceManager.create(this);
-
-        // Request GPS locations
-        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSION_ACCESS_FINE_LOCATION);
-            return;
-        }
 
         startListeningPlatformLocations();
 
@@ -276,7 +357,147 @@ public class Navigation extends FragmentActivity implements LocationListener,
             mWayfinder = IAWayfinder.create(this, graphJSON);
         }
 
+        nMap = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        nMap.getMapAsync(this);
+
+        // instantiate IALocationManager and IAResourceManager
+        mIALocationManager = IALocationManager.create(this);
+        mResourceManager = IAResourceManager.create(this);
+
+
+
+        handleIntent(getIntent());
+
+
+        mDrawerList = (ListView) findViewById(R.id.navList2);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout2);
+        mActivityTitle = getTitle().toString();
+
+        addDrawerItems();
+        setupDrawer();
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+        mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mListener);
+        mIALocationManager.registerRegionListener(mRegionListener);
+
     }
+
+    private void addDrawerItems() {
+        String[] osArray = { "Classrooms", "Offices", "Full Map", "Settings", "Tutorial" };
+        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, osArray);
+        mDrawerList.setAdapter(mAdapter);
+        final Intent i = new Intent(this, classrooms.class);
+        final Intent j = new Intent(this, offices.class);
+        final Intent k = new Intent(this, fullMap.class);
+        final Intent l = new Intent(this, settings.class);
+        final Intent main = new Intent(this, MainActivity.class);
+
+
+
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(id == 0){
+                    pickPointOnMap();
+                    mDrawerLayout.closeDrawers();
+                }
+                else if(id == 1){
+                    startActivity(j);
+                    mDrawerLayout.closeDrawers();
+                }
+                else if(id == 2){
+                    startActivity(k);
+                    mDrawerLayout.closeDrawers();
+                }
+                else if(id == 3){
+                    startActivity(l);
+                    mDrawerLayout.closeDrawers();
+                }
+                else if(id == 4) {
+                    startActivity(main);
+                }
+
+            }
+        });
+    }
+    static final int PICK_MAP_POINT_REQUEST = 999;  // The request code
+    private void pickPointOnMap() {
+        Intent pickPointIntent = new Intent(this, classrooms.class);
+        startActivityForResult(pickPointIntent, PICK_MAP_POINT_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == PICK_MAP_POINT_REQUEST) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                local = data.getParcelableExtra("picked_point");
+                onMapClick(local);
+            }
+        }
+    }
+
+    private void setupDrawer() {
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, R.string.drawer_open, R.string.drawer_close) {
+
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getSupportActionBar().setTitle("Navigation");
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getSupportActionBar().setTitle(mActivityTitle);
+                invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
+            }
+        };
+
+        mDrawerToggle.setDrawerIndicatorEnabled(true);
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        // Activate the navigation drawer toggle
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
 
     @Override
     protected void onDestroy() {
@@ -310,11 +531,7 @@ public class Navigation extends FragmentActivity implements LocationListener,
     @Override
     public void onMapReady(GoogleMap map){
         mMap = map;
-        mMap.setOnMapClickListener(this);
 
-
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(33.863333, -118.255177), 15));
-        //mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
 
         //Check for Permissions
         if (ContextCompat.checkSelfPermission(this,
@@ -342,6 +559,14 @@ public class Navigation extends FragmentActivity implements LocationListener,
             // Permission has already been granted
         }
         mMap.setMyLocationEnabled(true);
+        mMap.setOnMapClickListener(this);
+        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        double longitude = location.getLongitude();
+        double latitude = location.getLatitude();
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
+        //mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+
     }
 
 
@@ -581,5 +806,40 @@ public class Navigation extends FragmentActivity implements LocationListener,
         // path in current floor is visualized in red
         mPath = mMap.addPolyline(opt);
         mPathCurrent = mMap.addPolyline(optCurrent);
+    }
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        return true;
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+       private void handleIntent(Intent intent) {
+
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+            Cursor cursor = db.getWordMatches(query, null);
+            //process Cursor and display results
+            try {
+                // Display the number of rows in the Cursor (which reflects the number of rows in the
+                // pets table in the database).
+                TextView displayView = (TextView) findViewById(R.id.action_search);
+                displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            } finally {
+                // Always close the cursor when you're done reading from it. This releases all its
+                // resources and makes it invalid.
+                cursor.close();
+            }
+        }
     }
 }

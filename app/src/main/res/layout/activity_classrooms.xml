@@ -16,10 +16,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/action_settings"
-        android:text="SBS B123"
+        android:text="NSM B252"
         android:paddingBottom="15dp"
         android:paddingTop="15dp"
-        android:onClick="SBS_B123"
+        android:onClick="NSM_B252"
         />
 
 </android.support.constraint.ConstraintLayout>

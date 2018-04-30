@@ -3,6 +3,7 @@ package com.example.mlyho.csudhclassroomnav;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -14,10 +15,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-
-
-//import android.support.v7.app.ActionBarActivity;
-
 public class MainActivity extends AppCompatActivity {
     //Testing to see if the Github commits work through Android Studio
 
@@ -27,14 +24,13 @@ public class MainActivity extends AppCompatActivity {
     private ActionBarDrawerToggle mDrawerToggle;
     private String mActivityTitle;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mDrawerList = (ListView) findViewById(R.id.navList);
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = findViewById(R.id.navList1);
+        mDrawerLayout = findViewById(R.id.drawer_layout1);
         mActivityTitle = getTitle().toString();
 
         addDrawerItems();
@@ -51,11 +47,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void addDrawerItems() {
-        String[] osArray = { "Classrooms", "Offices", "Full Map", "Settings", "Navigation" };
-        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, osArray);
+        String[] osArray = {"Full Map", "Settings", "Navigation" };
+        mAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, osArray);
         mDrawerList.setAdapter(mAdapter);
-        final Intent i = new Intent(this, classrooms.class);
-        final Intent j = new Intent(this, offices.class);
         final Intent k = new Intent(this, fullMap.class);
         final Intent l = new Intent(this, settings.class);
         final Intent test = new Intent(this, Navigation.class);
@@ -65,18 +59,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(id == 0){
-                    startActivity(i);
-                }
-                else if(id == 1){
-                    startActivity(j);
-                }
-                else if(id == 2){
                     startActivity(k);
                 }
-                else if(id == 3){
+                else if(id == 1) {
                     startActivity(l);
                 }
-                else if(id == 4) {
+                else if(id == 2) {
+                    if(mDrawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        mDrawerLayout.closeDrawers();
+                    }
                     startActivity(test);
                 }
 

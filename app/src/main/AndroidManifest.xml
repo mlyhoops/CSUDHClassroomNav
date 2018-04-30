@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.mlyho.csudhclassroomnav">
 
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permision.REQUEST_LOCATION_PERMISSION" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <uses-feature
         android:name="android.hardware.sensor.accelerometer"
         android:required="true" />
@@ -15,11 +21,7 @@
         android:name="android.hardware.wifi"
         android:required="true" />
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permision.REQUEST_LOCATION_PERMISSION" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
 
     <application
         android:allowBackup="true"
@@ -28,7 +30,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".Navigation"
+            android:theme="@style/AppTheme.Launcher">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,6 +42,9 @@
         <activity android:name=".classrooms" />
         <activity android:name=".offices" />
         <activity android:name=".fullMap" />
+        <activity android:name=".MainActivity"/>
+
+
         <activity
             android:name=".menu"
             android:launchMode="singleTop">
@@ -64,7 +70,7 @@
             android:name="com.indooratlas.android.sdk.API_SECRET"
             android:value="T6NuGitwvrsspYwnpPoPFempDYEAdGbZexkx6cwokgazNuVS8fO6FDrwHDOA0bY2Skvw6IfEt7AZ+JPnocgzs9AdvW5WbrO2G9YFjXdeaycoKNo6f3NAeU3fIge5Gw==" />
 
-        <activity android:name=".Navigation" />
+
 
         <provider
             android:name="android.support.v4.content.FileProvider"
