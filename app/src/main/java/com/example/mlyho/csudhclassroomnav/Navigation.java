@@ -1,15 +1,11 @@
 package com.example.mlyho.csudhclassroomnav;
 
 import android.Manifest;
-import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -18,13 +14,14 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -32,10 +29,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -50,6 +51,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.DocumentReference;
 import com.indooratlas.android.sdk.IALocation;
 import com.indooratlas.android.sdk.IALocationListener;
 import com.indooratlas.android.sdk.IALocationManager;
@@ -72,18 +76,17 @@ import java.io.InputStream;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
-//import com.google.android.gms.maps.model.GroundOverlay;
+
+
 
 @SdkExample(description = R.string.example_wayfinding_description)
 public class Navigation extends AppCompatActivity implements LocationListener,
         GoogleMap.OnMapClickListener, OnMapReadyCallback{
+
     private static final int MY_PERMISSION_ACCESS_FINE_LOCATION = 42;
-
-    public static final String TAG = "IndoorAtlasExample";
-
+    public static final String TAG = "Navigation";
     /* used to decide when bitmap should be downscaled */
     private static final int MAX_DIMENSION = 2048;
-
     private SupportMapFragment nMap;
     private GoogleMap mMap; // Might be null if Google Play services APK is not available.
     private Circle mCircle;
@@ -95,22 +98,15 @@ public class Navigation extends AppCompatActivity implements LocationListener,
     private Target mLoadTarget;
     private boolean mCameraPositionNeedsUpdating = true; // update on first location
     private boolean mShowIndoorLocation = false;
-
     private IAWayfinder mWayfinder;
     private LatLng mLocation;
-
     private LatLng mDestination;
     private Marker mDestinationMarker;
-
     private Polyline mPath;
     private Polyline mPathCurrent;
     private IARoutingLeg[] mCurrentRoute;
-
     private Integer mFloor;
-
-    private SQLiteOpenHelper openHelper;
-    private SQLiteDatabase database;
-    private data db = new data(this);
+    private FusedLocationProviderClient mFusedLocationClient;
 
 
 
@@ -326,6 +322,15 @@ public class Navigation extends AppCompatActivity implements LocationListener,
     private ActionBarDrawerToggle mDrawerToggle;
     private String mActivityTitle;
     public LatLng local;
+    private String name = null;
+
+    private EditText mSearchField;
+    private ImageButton mSearchBtn;
+
+    private RecyclerView mSearchResult;
+    private DocumentReference reference;
+    Location location;
+
 
 
     @Override
@@ -341,6 +346,8 @@ public class Navigation extends AppCompatActivity implements LocationListener,
         setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
+
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         // prevent the screen going to sleep while app is on foreground
         findViewById(android.R.id.content).setKeepScreenOn(true);
@@ -366,10 +373,6 @@ public class Navigation extends AppCompatActivity implements LocationListener,
         mResourceManager = IAResourceManager.create(this);
 
 
-
-        handleIntent(getIntent());
-
-
         mDrawerList = (ListView) findViewById(R.id.navList2);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout2);
         mActivityTitle = getTitle().toString();
@@ -383,7 +386,54 @@ public class Navigation extends AppCompatActivity implements LocationListener,
         mIALocationManager.requestLocationUpdates(IALocationRequest.create(), mListener);
         mIALocationManager.registerRegionListener(mRegionListener);
 
+
+       // reference = FirebaseFirestore.getInstance().document("Classes");
+
+
+        mSearchField = (EditText) findViewById(R.id.action_search);
+        mSearchBtn = (ImageButton) findViewById(R.id.search_btn);
+
+        mSearchResult = (RecyclerView) findViewById(R.id.searchResult);
+
+        mSearchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                firebaseUserSearch();
+            }
+        });
+
+
     }
+
+    public class ClassViewHolder extends RecyclerView.ViewHolder{
+        View mView;
+        public ClassViewHolder(View itemView){
+            super(itemView);
+            mView = itemView;
+
+        }
+
+        public void setDetails(String className){
+            TextView class_name = (TextView) mView.findViewById(R.id.class_name);
+
+        }
+
+    }
+
+    public void firebaseUserSearch(){
+
+//        FirestoreRecyclerAdapter<classesDatabase, ClassViewHolder> firebaseRecyclerAdapter = new FirestoreRecyclerAdapter<classesDatabase, ClassViewHolder>(
+//
+//                classesDatabase.class,R.layout.list_layout,ClassViewHolder.class,reference
+//        ){
+//            @Override
+//            protected void populateViewHolder(ClassViewHolder viewHolder, classesDatabase model, int position){
+//
+//            }
+//        };
+    }
+
+
 
     private void addDrawerItems() {
         String[] osArray = { "Classrooms", "Offices", "Full Map", "Settings", "Tutorial" };
@@ -401,7 +451,7 @@ public class Navigation extends AppCompatActivity implements LocationListener,
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 if(id == 0){
-                    pickPointOnMap();
+                    pickPointOnMap(); // open classroom activity for classroom choice
                     mDrawerLayout.closeDrawers();
                 }
                 else if(id == 1){
@@ -424,6 +474,7 @@ public class Navigation extends AppCompatActivity implements LocationListener,
         });
     }
     static final int PICK_MAP_POINT_REQUEST = 999;  // The request code
+    // Start classroom activity and return the result of the point chosen
     private void pickPointOnMap() {
         Intent pickPointIntent = new Intent(this, classrooms.class);
         startActivityForResult(pickPointIntent, PICK_MAP_POINT_REQUEST);
@@ -435,6 +486,8 @@ public class Navigation extends AppCompatActivity implements LocationListener,
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 local = data.getParcelableExtra("picked_point");
+                name = data.getStringExtra("title");
+                Log.d(TAG, name + "TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING TESTING");
                 onMapClick(local);
             }
         }
@@ -528,6 +581,7 @@ public class Navigation extends AppCompatActivity implements LocationListener,
 
     }
 
+
     @Override
     public void onMapReady(GoogleMap map){
         mMap = map;
@@ -560,11 +614,29 @@ public class Navigation extends AppCompatActivity implements LocationListener,
         }
         mMap.setMyLocationEnabled(true);
         mMap.setOnMapClickListener(this);
-        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-        Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        double longitude = location.getLongitude();
-        double latitude = location.getLatitude();
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
+
+        //LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        //Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location locationTrue) {
+                // GPS location can be null if GPS is switched off
+                if (locationTrue != null) {
+                    location = locationTrue;
+                    Log.d(TAG, "NULL NULL NULL NULL NULL " + location + " " + locationTrue);
+                }
+            }
+        })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d(TAG, "Error trying to get last GPS location");
+                        e.printStackTrace();
+                    }
+                });
+//        double longitude = location.getLongitude();
+//        double latitude = location.getLatitude();
+//        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15));
         //mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
 
     }
@@ -730,6 +802,7 @@ public class Navigation extends AppCompatActivity implements LocationListener,
 
     }
 
+    String place = "TESTING";
     @Override
     public void onMapClick(LatLng point) {
         if (mMap != null) {
@@ -737,10 +810,17 @@ public class Navigation extends AppCompatActivity implements LocationListener,
             mDestination = point;
             if (mDestinationMarker == null) {
                 mDestinationMarker = mMap.addMarker(new MarkerOptions()
-                        .position(point)
+                        .position(point).title(name)
                         .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                mDestinationMarker.showInfoWindow();
+                name = null;
             } else {
-                mDestinationMarker.setPosition(point);
+                mDestinationMarker.remove();
+                mDestinationMarker = mMap.addMarker(new MarkerOptions()
+                        .position(point).title(name)
+                        .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+                mDestinationMarker.showInfoWindow();
+                name = null;
             }
             if (mWayfinder != null) {
                 mWayfinder.setDestination(point.latitude, point.longitude, mFloor);
@@ -807,39 +887,21 @@ public class Navigation extends AppCompatActivity implements LocationListener,
         mPath = mMap.addPolyline(opt);
         mPathCurrent = mMap.addPolyline(optCurrent);
     }
+
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu_main, menu);
-        SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+//        SearchManager searchManager = (SearchManager)getSystemService(Context.SEARCH_SERVICE);
+//        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+//        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
 
         return true;
     }
 
-    @Override
-    protected void onNewIntent(Intent intent) {
-        setIntent(intent);
-        handleIntent(intent);
-    }
 
-       private void handleIntent(Intent intent) {
 
-        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
-            String query = intent.getStringExtra(SearchManager.QUERY);
-            Cursor cursor = db.getWordMatches(query, null);
-            //process Cursor and display results
-            try {
-                // Display the number of rows in the Cursor (which reflects the number of rows in the
-                // pets table in the database).
-                TextView displayView = (TextView) findViewById(R.id.action_search);
-                displayView.setText("Number of rows in pets database table: " + cursor.getCount());
-            } finally {
-                // Always close the cursor when you're done reading from it. This releases all its
-                // resources and makes it invalid.
-                cursor.close();
-            }
-        }
-    }
+
 }

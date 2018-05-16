@@ -7,14 +7,51 @@
     android:layout_height="match_parent"
     tools:context="com.example.mlyho.csudhclassroomnav.Navigation">
 
+
     <RelativeLayout
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
             android:id="@+id/map"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content" />
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/searchResult"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </android.support.v7.widget.RecyclerView>
+
+        <EditText
+            android:id="@+id/searchbox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:inputType="text"
+            android:textSize="28sp"
+            android:scrollHorizontally="true"
+            android:ellipsize="end"
+            android:layout_weight="1"
+            android:layout_marginTop="12dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="60dp"
+            android:background="#b8b8b8"
+            android:hint="Search...">
+        </EditText>
+
+        <ImageButton
+            android:id="@+id/search_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/searchbox"
+            android:layout_alignTop="@id/searchbox"
+            android:layout_alignRight="@+id/searchbox"
+            app:srcCompat="@drawable/ic_action_search"/>
+
     </RelativeLayout>
 
     <ListView
@@ -26,4 +63,3 @@
 
 
 </android.support.v4.widget.DrawerLayout>
-
